@@ -1,5 +1,7 @@
 "use client"
-import { useState } from "react"
+
+import { useFormState } from "react-dom"
+import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,27 +13,11 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card"
-import { AlertCircle } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
+import { signUp, ActionState } from "@/app/actions"
 
 function SignUpForm() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
-    if (!username || !password) {
-      setError("Please fill in all fields")
-      return
-    }
-
-    console.log("Sign up submitted", { username, password })
-
-    setUsername("")
-    setPassword("")
-  }
+  const [state, formAction] = useFormState(signUp, {})
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -39,34 +25,38 @@ function SignUpForm() {
         <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
         <CardDescription>Create a new account to get started.</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form action={formAction}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
             <Input
               id="username"
+              name="username"
               type="text"
               placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               required
             />
+            {state.errors?.username && (
+              <p className="text-sm text-red-500">{state.errors.username}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
+              name="password"
               type="password"
               placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {state.errors?.password && (
+              <p className="text-sm text-red-500">{state.errors.password}</p>
+            )}
           </div>
-          {error && (
-            <div className="text-red-500 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+          {state.message && (
+            <div className="text-green-500 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{state.message}</span>
             </div>
           )}
         </CardContent>
