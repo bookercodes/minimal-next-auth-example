@@ -14,7 +14,7 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { CheckCircle2 } from "lucide-react"
-import { signUp, ActionState } from "@/app/actions"
+import { signUp } from "@/app/actions"
 
 function SignUpForm() {
   const [state, formAction] = useFormState(signUp, {})

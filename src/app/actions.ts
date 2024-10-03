@@ -1,6 +1,8 @@
 "use server"
 
 import { z } from "zod"
+import db from "@/db"
+import bcrypt from "bcrypt"
 
 const SignUpSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -30,9 +32,19 @@ export async function signUp(
     }
   }
 
-  const { username, password } = validatedFields.data
+  let { username, password } = validatedFields.data
 
-  console.log("password", password)
+  password = await bcrypt.hash(password, 10) // Hash the password
+
+  try {
+    const stmt = db.prepare("INSERT INTO users (name, password) VALUES (?, ?)")
+    stmt.run(username, password)
+  } catch (error) {
+    console.error(error)
+    return {
+      message: `An unexpected error occured.`
+    }
+  }
 
   return {
     message: `User ${username} signed up successfully!`
