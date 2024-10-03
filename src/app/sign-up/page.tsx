@@ -1,6 +1,6 @@
 "use client"
 
-import { useFormState } from "react-dom"
+import { useFormState, useFormStatus } from "react-dom"
 import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,10 +14,19 @@ import {
   CardTitle
 } from "@/components/ui/card"
 import { CheckCircle2 } from "lucide-react"
-import { signUp } from "@/app/actions"
+import { signUp, ActionState } from "@/app/actions"
+
+const initialState: ActionState = {}
+
+function Submit() {
+  const status = useFormStatus()
+  return <Button disabled={status.pending}>Sign up</Button>
+}
 
 function SignUpForm() {
-  const [state, formAction] = useFormState(signUp, {})
+  const [state, action] = useFormState(signUp, initialState)
+  const formRef = useRef<HTMLFormElement>(null)
+  const { pending } = useFormStatus()
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -25,7 +34,7 @@ function SignUpForm() {
         <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
         <CardDescription>Create a new account to get started.</CardDescription>
       </CardHeader>
-      <form action={formAction}>
+      <form ref={formRef} action={action}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
@@ -61,9 +70,7 @@ function SignUpForm() {
           )}
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
-            Sign Up
-          </Button>
+          <Submit />
         </CardFooter>
       </form>
     </Card>

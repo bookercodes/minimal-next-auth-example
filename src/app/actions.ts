@@ -36,6 +36,8 @@ export async function signUp(
 
   password = await bcrypt.hash(password, 10) // Hash the password
 
+  await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+
   try {
     const stmt = db.prepare("INSERT INTO users (name, password) VALUES (?, ?)")
     stmt.run(username, password)
