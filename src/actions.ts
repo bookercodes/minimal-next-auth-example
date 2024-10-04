@@ -3,6 +3,9 @@
 import { z } from "zod"
 import db from "@/db"
 import bcrypt from "bcrypt"
+import { createSession } from "./auth"
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 
 const SignUpSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -40,7 +43,19 @@ export async function signUp(
 
   try {
     const stmt = db.prepare("INSERT INTO users (name, password) VALUES (?, ?)")
-    stmt.run(username, password)
+    const res = stmt.run(username, password)
+    const userId = res.lastInsertRowid
+
+    const sesh = createSession(userId)
+    const sesh_id = sesh?.id
+
+    cookies().set("session", `${sesh_id}`, {
+      httpOnly: true,
+      secure: true,
+      expires: sesh?.endTime,
+      sameSite: "lax",
+      path: "/"
+    })
   } catch (error) {
     console.error(error)
     return {
@@ -48,7 +63,5 @@ export async function signUp(
     }
   }
 
-  return {
-    message: `User ${username} signed up successfully!`
-  }
+  redirect("/dashboard")
 }
