@@ -13,7 +13,7 @@ db.exec(`
   `)
 db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
-    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id STRING PRIMARY KEY,
     user_id INTEGER NOT NULL,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
