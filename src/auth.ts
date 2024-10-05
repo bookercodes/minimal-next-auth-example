@@ -15,27 +15,28 @@ export function findSession(sessionId: any) {
   return session
 }
 
-export function createSession(userId: any) {
-  const insertSessionStmt = db.prepare(`
-        INSERT INTO sessions (session_id, user_id, start_time, end_time) VALUES (?, ?, ?, ?);
-    `)
-
+export function startSession(userId: number | bigint): void {
   const sessionId = randomBytes(16).toString("base64url")
-  const startTime = new Date().toISOString() // Current time in ISO format
-  const endTime = new Date()
-  endTime.setDate(endTime.getDate() + 7) // Add 7 days
-  const formattedEndTime = endTime.toISOString() // Convert to ISO format
+
+  const expires = new Date()
+  expires.setMinutes(expires.getMinutes() + 20)
 
   try {
-    // Execute the insert statement
-    insertSessionStmt.run(sessionId, userId, startTime, formattedEndTime)
-    console.log(`Session inserted with ID: ${sessionId}`)
-    return {
-      id: sessionId,
-      endTime
-    }
+    db.prepare(
+      `
+    INSERT INTO sessions (session_id, user_id, expires) 
+    VALUES (?, ?, ?)`
+    ).run(sessionId, userId, expires.toISOString())
   } catch (error) {
-    console.error("Error inserting session:", error)
+    console.error("error inserting session", error)
+    return
   }
-  return null
+
+  cookies().set("session", sessionId, {
+    httpOnly: true,
+    secure: true,
+    expires,
+    sameSite: "lax",
+    path: "/"
+  })
 }

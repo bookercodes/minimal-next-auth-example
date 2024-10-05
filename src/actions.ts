@@ -3,7 +3,7 @@
 import { z } from "zod"
 import db from "@/db"
 import bcrypt from "bcrypt"
-import { createSession } from "./auth"
+import { startSession } from "./auth"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { error } from "console"
@@ -60,7 +60,7 @@ export async function signIn(
     return errorMessage
   }
 
-  const sesh = createSession(user.user_id)
+  const sesh = startSession(user.user_id)
   console.log("sesh", sesh)
   const sesh_id = sesh?.id
 
@@ -95,23 +95,12 @@ export async function signUp(
 
   password = await bcrypt.hash(password, 10) // Hash the password
 
-  await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-
   try {
     const stmt = db.prepare("INSERT INTO users (name, password) VALUES (?, ?)")
     const res = stmt.run(username, password)
     const userId = res.lastInsertRowid
 
-    const sesh = createSession(userId)
-    const sesh_id = sesh?.id
-
-    cookies().set("session", `${sesh_id}`, {
-      httpOnly: true,
-      secure: true,
-      expires: sesh?.endTime,
-      sameSite: "lax",
-      path: "/"
-    })
+    startSession(userId)
   } catch (error) {
     console.error(error)
     return {
