@@ -51,7 +51,7 @@ export function startSession(userId: number | bigint): void {
   try {
     db.prepare(
       `INSERT INTO sessions (session_id, user_id, expires) 
-    VALUES (?, ?, ?)`
+       VALUES (?, ?, ?)`
     ).run(sessionId, userId, expires.toISOString())
   } catch (error) {
     console.error("error INSERTING session", error)
