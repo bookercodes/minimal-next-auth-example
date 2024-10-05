@@ -3,7 +3,7 @@
 import { z } from "zod"
 import db from "@/db"
 import bcrypt from "bcrypt"
-import { startSession } from "./auth"
+import { deleteSession, startSession } from "./auth"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { error } from "console"
@@ -60,18 +60,7 @@ export async function signIn(
     return errorMessage
   }
 
-  const sesh = startSession(user.user_id)
-  console.log("sesh", sesh)
-  const sesh_id = sesh?.id
-
-  cookies().set("session", `${sesh_id}`, {
-    httpOnly: true,
-    secure: true,
-    expires: sesh?.endTime,
-    sameSite: "lax",
-    path: "/"
-  })
-
+  startSession(user.user_id)
   redirect("/dashboard")
   return { message: "success" }
 }
@@ -112,6 +101,5 @@ export async function signUp(
 }
 
 export async function signOut() {
-  cookies().delete("session")
-  redirect("/")
+  deleteSession()
 }

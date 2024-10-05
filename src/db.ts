@@ -1,8 +1,8 @@
 import Database from "better-sqlite3"
-import path from "path"
+import { join } from "path"
 
-const dbPath = path.join(process.cwd(), "database.db")
-const db = new Database(dbPath, { verbose: console.log })
+const path = join(process.cwd(), "database.db")
+const db = new Database(path, { verbose: console.log })
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (

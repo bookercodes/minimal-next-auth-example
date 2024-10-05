@@ -1,6 +1,5 @@
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
-import { findSession } from "./auth"
 
 // const protectedRoutes = ["/dashboard"]
 
