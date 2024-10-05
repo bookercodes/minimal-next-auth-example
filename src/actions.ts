@@ -121,3 +121,8 @@ export async function signUp(
 
   redirect("/dashboard")
 }
+
+export async function signOut() {
+  cookies().delete("session")
+  redirect("/")
+}
