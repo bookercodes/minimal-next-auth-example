@@ -1,6 +1,19 @@
 import { cookies } from "next/headers"
 import db from "./db"
 
+export function findSession(sessionId: any) {
+  const stmt = db.prepare(`
+        SELECT s.*, u.name AS user_name 
+        FROM sessions s
+        JOIN users u ON s.user_id = u.user_id
+        WHERE s.session_id = ?
+    `)
+
+  // Execute the query with the session_id
+  const session = stmt.get(sessionId)
+  return session
+}
+
 export function createSession(userId: any) {
   const insertSessionStmt = db.prepare(`
         INSERT INTO sessions (user_id, start_time, end_time) VALUES (?, ?, ?);
