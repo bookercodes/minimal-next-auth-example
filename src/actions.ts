@@ -2,20 +2,26 @@
 
 import { z } from "zod"
 import db from "@/db"
-import bcrypt from "bcrypt"
+import { compare, hash } from "bcrypt"
 import { deleteSession, startSession } from "./auth"
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { error } from "console"
 
 const SignUpSchema = z.object({
   username: z.string(),
-  password: z.string()
+  password: z
+    .string()
+    .min(8, { message: "Be at least 8 characters long" })
+    .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
+    .regex(/[0-9]/, { message: "Contain at least one number." })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Contain at least one special character."
+    })
+    .trim()
 })
 
 const SignInSchema = z.object({
-  username: z.string(),
-  password: z.string()
+  username: z.string().min(1),
+  password: z.string().min(1)
 })
 
 export type ActionState = {
@@ -27,76 +33,66 @@ export type ActionState = {
 }
 
 export async function signIn(
-  prevState: ActionState,
+  _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const validatedFields = SignInSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password")
   })
-
-  const errorMessage = { message: "Invalid login credentials." }
-
-  // If any form fields are invalid, return early
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors
     }
   }
 
-  const stmt = db.prepare("SELECT * FROM users WHERE name = ?")
-  const user: any = stmt.get(validatedFields.data.username)
+  const user: any = db
+    .prepare("SELECT * FROM users WHERE name = ?")
+    .get(validatedFields.data.username)
 
   if (!user) {
-    return errorMessage
+    return { message: "Invalid login credentials." }
   }
 
-  const passwordMatch = await bcrypt.compare(
+  const passwordIsValid = await compare(
     validatedFields.data.password,
     user.password
   )
-
-  if (!passwordMatch) {
-    return errorMessage
+  if (!passwordIsValid) {
+    return { message: "Invalid login credentials." }
   }
 
   startSession(user.user_id)
   redirect("/dashboard")
-  return { message: "success" }
 }
 
 export async function signUp(
-  prevState: ActionState,
+  _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const validatedFields = SignUpSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password")
   })
-
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors
     }
   }
 
-  let { username, password } = validatedFields.data
-
-  password = await bcrypt.hash(password, 10) // Hash the password
+  const hashedPassword = await hash(validatedFields.data.password, 10)
 
   try {
-    const stmt = db.prepare("INSERT INTO users (name, password) VALUES (?, ?)")
-    const res = stmt.run(username, password)
-    const userId = res.lastInsertRowid
-
+    const userId = db
+      .prepare("INSERT INTO users (name, password) VALUES (?, ?)")
+      .run(validatedFields.data.username, hashedPassword).lastInsertRowid
     startSession(userId)
   } catch (error) {
     console.error(error)
     return {
-      message: `An unexpected error occured.`
+      message: "An unexpected error occured."
     }
   }
-
   redirect("/dashboard")
 }
 

@@ -16,9 +16,9 @@ export function auth() {
     session = db
       .prepare(
         `SELECT s.*, u.name AS user_name 
-         FROM sessions s
-         JOIN users u ON s.user_id = u.user_id
-         WHERE s.session_id = ?`
+        FROM sessions s
+        JOIN users u ON s.user_id = u.user_id
+        WHERE s.session_id = ?`
       )
       .get(sessionId)
   } catch (error) {

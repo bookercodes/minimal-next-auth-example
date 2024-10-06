@@ -26,7 +26,6 @@ function Submit() {
 function SignUpForm() {
   const [state, action] = useFormState(signUp, initialState)
   const formRef = useRef<HTMLFormElement>(null)
-  const { pending } = useFormStatus()
 
   return (
     <Card className="w-full max-w-md mx-auto">
